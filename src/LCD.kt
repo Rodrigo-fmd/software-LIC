@@ -38,19 +38,21 @@ object LCD {
         TODO ()
     }
 
-    // Envia a sequencia de iniciação para comunicação a 4 bits.
+    // Envia a sequência de iniciação para comunicação a 4 bits.
     fun init(){
         TODO()
     }
 
-    // Escreve um carater na posição corrente.
+    // Escreve um character na posição corrente.
     fun write(c : Char){
-        TODO()
+        writeDATA(c.code)
     }
 
     // Escreve uma ‘string’ na posição corrente.
     fun write(text : String){
-        TODO()
+        for (c in text) {
+            write(c)
+        }
     }
 
     // Envia comando para posicionar cursor (’line’ : 0 .. L I N E S - 1 , ’c o l u m n’ : 0 .. COLS - 1)
