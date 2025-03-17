@@ -20,7 +20,7 @@ object KBD {
         if (HAL.isBit(DVAL_MASK)){
             val key = HAL.readBits(KEY_CODE_MASK)
             HAL.setBits(ACK_MASK)
-            return key.toChar()
+            return KEYS[key]
         }
         else {
             HAL.clrBits(ACK_MASK)
