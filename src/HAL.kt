@@ -2,7 +2,7 @@ import isel.leic.UsbPort
 
 object HAL {
 
-    private var output = 0
+    private var output = 0b00000000
 
     // Inicia o objeto
     fun init() = UsbPort.write(output)
@@ -15,8 +15,7 @@ object HAL {
 
     // Escreve nos bits representados por mask os valores dos bits correspondentes em value
     fun writeBits(mask : Int, value: Int){
-       val input = UsbPort.read()
-       output = input.and(mask.inv()).or(value.and(mask))
+       output = output.and(mask.inv()).or(value.and(mask))
        UsbPort.write(output)
     }
 
