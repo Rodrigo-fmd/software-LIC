@@ -7,11 +7,11 @@ object KBD {
     private const val DVAL_MASK = 0x10
     private const val KEY_CODE_MASK = 0xF
     private const val ACK_MASK = 0x80
-    private const val INIT_VALUE = 0
+    //private const val INIT_VALUE = 0
     private const val KEYS = "147*2580369#ABCD"
 
     // Inicia a classe
-    fun init() = UsbPort.write(INIT_VALUE.and(ACK_MASK))
+    fun init() = HAL.clrBits(ACK_MASK)
 
 
 
@@ -26,7 +26,6 @@ object KBD {
             HAL.clrBits(ACK_MASK)
             return KEYS[key]
         } else {
-            HAL.clrBits(ACK_MASK)
             return NONE.toChar()
         }
     }
