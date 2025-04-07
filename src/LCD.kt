@@ -5,7 +5,7 @@ import isel.leic.utils.Time
 object LCD {
 
     // Dimensão do display.
-    private const val LINES = 2
+    const val LINES = 2
     const val COLS = 16
     private const val RS_MASK = 0x10
     private const val DATA_MASK = 0x0F

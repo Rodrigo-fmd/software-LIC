@@ -5,7 +5,7 @@ fun main() {
     KBD.init()
     LCD.init()
     var position = 0
-    val maxPosition = 32 // 16 colunas * 2 linhas
+    val maxPosition = LCD.COLS * LCD.LINES // 16 colunas * 2 linhas
 
     while (true) {
         val key = KBD.waitKey(10000)
