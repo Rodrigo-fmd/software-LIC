@@ -91,21 +91,3 @@ object LCD {
         writeCMD(0x1)
     }
 }
-
-fun main(){
-    println("Iniciando teste do LCD...")
-
-    HAL.init()
-    LCD.init()
-    LCD.clear()
-
-    LCD.cursor(0, 0)
-    LCD.write("Hello, World!")
-    Time.sleep(2000)
-    LCD.clear()
-
-    LCD.cursor(1, 0)
-    LCD.write("LCD Test")
-    Time.sleep(2000)
-    LCD.clear()
-}
