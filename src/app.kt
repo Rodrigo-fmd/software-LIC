@@ -31,15 +31,14 @@ fun main() {
 
         updateCountsDisplay()
 
-        while (coins > 0) {
+        while (true) {
             RouletteDisplay.setValue(coins)
             val key = TUI.waitKey(100)
             val idx = keys.indexOf(key)
-            if (idx != -1) {
-                counts[idx]++
-                coins--
-                updateCountsDisplay()
-            }
+            counts[idx]++
+            if(coins > 0) coins--
+            updateCountsDisplay()
+
             if (key == '#') break
         }
 
