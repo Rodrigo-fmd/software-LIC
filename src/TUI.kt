@@ -1,8 +1,10 @@
+import LCD.COLS
 import isel.leic.utils.Time
 
-fun main() {
+/*fun main() {
     HAL.init()
     KBD.init()
+    SerialEmitter.init()
     LCD.init()
     var position = 0
     val maxPosition = LCD.COLS * LCD.LINES // 16 colunas * 2 linhas
@@ -21,5 +23,35 @@ fun main() {
             LCD.write(key)
             position++
         }
+    }
+}*/
+
+object TUI {
+
+    fun init() {
+        HAL.init()
+        KBD.init()
+        SerialEmitter.init()
+        LCD.init()
+        LCD.clear()
+    }
+
+    fun writeCentered(line: Int, text: String) {
+        val padding = (COLS - text.length) / 2
+        LCD.cursor(line, 0)
+        LCD.write(" ".repeat(padding) + text + " ".repeat(COLS - padding - text.length))
+    }
+
+    fun clear() {
+        LCD.clear()
+    }
+
+    fun waitKey(timeout: Long = 0): Char {
+        return KBD.waitKey(timeout)
+    }
+
+    fun writeAt(line: Int, col: Int, text: String) {
+        LCD.cursor(line, col)
+        LCD.write(text)
     }
 }

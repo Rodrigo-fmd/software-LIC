@@ -7,7 +7,7 @@ object LCD {
     // Dimensão do display.
     const val LINES = 2
     const val COLS = 16
-    private const val RS_MASK = 0x10
+    private const val RS_MASK = 0x01
     private const val DATA_MASK = 0x0F
     private const val LOW_NIBBLE_MASK = 0x0F
     private const val ENABLE_MASK = 0x20
@@ -15,7 +15,7 @@ object LCD {
 
 
     // Define se a interface e Serie ou Paralela
-    private const val SERIAL_INTERFACE = false
+    private const val SERIAL_INTERFACE = true
 
     // Escreve um byte de comando / dados no LCD em paralelo
     private fun writeNibbleParallel(rs : Boolean, data : Int){
@@ -29,7 +29,7 @@ object LCD {
 
     // Escreve um byte de comando / dados no LCD em série
     private fun writeNibbleSerial(rs : Boolean, data : Int){
-        TODO()
+        SerialEmitter.send(SerialEmitter.Destination.LCD, (data shl 1) or if (rs) RS_MASK else 0, 5)
     }
 
     // Escreve um nibble de comando / dados no LCD
@@ -90,4 +90,13 @@ object LCD {
     fun clear(){
         writeCMD(0x1)
     }
+}
+
+fun main() {
+    HAL.init()
+    SerialEmitter.init()
+    LCD.init()
+    LCD.clear()
+    LCD.cursor(0, 0)
+    LCD.write("Hello, World!")
 }
