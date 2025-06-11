@@ -29,16 +29,20 @@ object SerialEmitter { // Envia tramas para os diferentes módulos Serial Receiv
         HAL.clrBits(CLOCK_MASK)
 
         for (i in 0 until size) {
-            val bit = (data shr i) and 1
+            val bit = (data shr i) and 0x01
             if (bit == 1) activeBits++
 
             HAL.writeBits(SDX_MASK, bit shl 3)
+
             HAL.setBits(CLOCK_MASK)
             HAL.clrBits(CLOCK_MASK)
         }
 
-        if (activeBits % 2 == 0) HAL.clrBits(SDX_MASK)
+        if (activeBits % 2 != 0) HAL.clrBits(SDX_MASK)
         else HAL.setBits(SDX_MASK)
+
+        HAL.setBits(CLOCK_MASK)
+        HAL.clrBits(CLOCK_MASK)
 
         HAL.setBits(SELECT_LCD)
         HAL.setBits(SELECT_ROULETTE)

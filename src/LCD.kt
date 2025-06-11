@@ -95,6 +95,7 @@ object LCD {
 fun main() {
     HAL.init()
     SerialEmitter.init()
+    KBD.init()
     LCD.init()
     LCD.clear()
     LCD.cursor(0, 0)

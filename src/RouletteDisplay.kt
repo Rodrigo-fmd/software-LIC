@@ -1,11 +1,15 @@
+import RouletteDisplay.startDisplay
 import isel.leic.utils.Time
 
 object RouletteDisplay {
 
     private const val DISPLAY_ON = 0x07
     private const val DISPLAY_OFF = 0x0F
+    private const val DISPLAY_UPDATE = 0x06
+    private const val DISPLAY_SIZE = 8
     private val loop = listOf(0x12, 0x13, 0x14, 0x15, 0x16, 0x11)
     private val displays = (0..5).toList()
+
 
     fun init() {
         SerialEmitter.init()
@@ -23,7 +27,13 @@ object RouletteDisplay {
         SerialEmitter.send(
             SerialEmitter.Destination.ROULETTE,
             (digit shl 3) or displayIdx,
-            9
+            DISPLAY_SIZE
+        )
+        // Atualiza o display
+        SerialEmitter.send(
+            SerialEmitter.Destination.ROULETTE,
+            DISPLAY_UPDATE,
+            DISPLAY_SIZE
         )
     }
 
@@ -36,31 +46,49 @@ object RouletteDisplay {
         }
     }
 
-    fun animation(coins: Int): Int{
+    fun bettingPhase(
+        keys: String,
+        counts: MutableList<Int>,
+        coinsInit: Int,
+        updateCounts: (List<Int>) -> Unit,
+        waitKey: (Long) -> Char
+    ): Int {
+        var coins = coinsInit
         val digits = coins.toString().reversed().map { it.digitToInt() }
         val nDisplays = displays.drop(digits.size)
-        var sleepTime = 100L
 
-        // Mostra as moedas nos displays à direita
-        digits.forEachIndexed { idx, digit -> sendDigitToDisplay(digit, idx) }
-
-        // Valor inicial aleatório
-        var random = (0..15).random()
+        digits.forEachIndexed { idx, _ -> setValue(coins) }
 
         forSeconds(5) {
             loop.forEach { value ->
                 nDisplays.forEach { displayIdx ->
                     sendDigitToDisplay(value, displayIdx)
                 }
+                val key = waitKey(100)
+                val idx = keys.indexOf(key)
+                if (idx != -1 && counts[idx] < 9 && coins > 0) {
+                    counts[idx]++
+                    coins--
+                    updateCounts(counts)
+                }
                 Time.sleep(100)
             }
         }
-        // Mostra valores crescentes, voltando ao início quando chega a 16
+        return coins
+    }
+
+    fun animation(coins: Int): Int{
+        var sleepTime = 100L
+
+        // Valor inicial aleatório
+        var random = (0..13).random()
+
+        // Mostra valores crescentes, voltando ao início quando chega a 14
         repeat(8) {
             displays.forEach { disp ->
                 sendDigitToDisplay(random, disp)
             }
-            random = (random + 1) % 16
+            random = (random + 1) % 14
             Time.sleep(sleepTime)
             sleepTime += 150
         }
@@ -85,28 +113,30 @@ object RouletteDisplay {
         // Escreve os números nos displays
         val digits = value.toString().reversed().map { it.digitToInt() }
         digits.forEachIndexed { idx, digit -> sendDigitToDisplay(digit, idx) }
-
         // Preenche os restantes com 0
         for (j in digits.size until displays.size)
             sendDigitToDisplay(0x1F, j)
+
     }
 
     fun won(winningNumber: Int, count: Int, winner: Boolean) {
-        val winnings = count * 2
-        val winningsStr = winnings.toString()
-        val winnerStr = winningNumber.toString()
+        val winnings = count
+        val winningsStr = winnings.toString().reversed()
+        val winnerStr = if (winningNumber < 10) winningNumber.toString() else "ABCD"[winningNumber - 10].toString()
         val totalDisplays = displays.size
         val spaceBetweenNumbers = totalDisplays - winningsStr.length - winnerStr.length
         val displayStr = winningsStr + "-".repeat(spaceBetweenNumbers) + winnerStr
-        forSeconds(4){
-            displayStr.forEachIndexed { idx, char ->
-                val digit = when {
-                    char == '-' -> if(winner) 0x18 else 0x10
-                    else -> char.digitToInt()
-                }
-                sendDigitToDisplay(digit, idx)
+
+        displayStr.forEachIndexed { idx, char ->
+            val digit = when {
+                char == '-' -> if(winner) 0x18 else 0x10
+                char in "ABCD" -> 0x0A + "ABCD".indexOf(char) // 0x0A para A, 0x0B para B, etc.
+                else -> char.digitToInt()
             }
+            sendDigitToDisplay(digit, idx)
         }
+        Time.sleep(4000)
+        println("Vencedor: $winner, Número: $winningNumber, Contagem: $count, Ganhos: $winnings")
     }
 
     fun off(value: Boolean) {
@@ -114,7 +144,7 @@ object RouletteDisplay {
         SerialEmitter.send(
             SerialEmitter.Destination.ROULETTE,
             if (value) DISPLAY_OFF else DISPLAY_ON,
-            9
+            DISPLAY_SIZE
         )
     }
 }

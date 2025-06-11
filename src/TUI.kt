@@ -39,7 +39,7 @@ object TUI {
     fun writeCentered(line: Int, text: String) {
         val padding = (COLS - text.length) / 2
         LCD.cursor(line, 0)
-        LCD.write(" ".repeat(padding) + text + " ".repeat(COLS - padding - text.length))
+        LCD.write(" ".repeat(padding) + text + " ".repeat(COLS - padding - text.length - 1))
     }
 
     fun clear() {
@@ -53,5 +53,14 @@ object TUI {
     fun writeAt(line: Int, col: Int, text: String) {
         LCD.cursor(line, col)
         LCD.write(text)
+    }
+
+    fun updateCountsDisplay(counts: List<Int>, keysLength: Int) {
+        val counters = counts.joinToString("") { if (it > 0) it.toString() else " " }
+        writeCentered(0, counters.padEnd(keysLength))
+    }
+
+    fun cursor(line: Int, col: Int) {
+        LCD.cursor(line, col)
     }
 }
