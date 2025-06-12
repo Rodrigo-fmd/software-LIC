@@ -46,35 +46,27 @@ object RouletteDisplay {
         }
     }
 
-    fun bettingPhase(
-        keys: String,
-        counts: MutableList<Int>,
-        coinsInit: Int,
-        updateCounts: (List<Int>) -> Unit,
-        waitKey: (Long) -> Char
-    ): Int {
-        var coins = coinsInit
-        val digits = coins.toString().reversed().map { it.digitToInt() }
-        val nDisplays = displays.drop(digits.size)
+    fun setValue(value: Int, flag: Boolean) {
+        val digits = value.toString().reversed().map { it.digitToInt() }
+        val nDigits = digits.size
+        val nDisplays = displays.size
 
-        digits.forEachIndexed { idx, _ -> setValue(coins) }
+        // Atualiza sempre os dígitos das moedas imediatamente
+        digits.forEachIndexed { idx, digit -> sendDigitToDisplay(digit, idx) }
 
-        forSeconds(5) {
-            loop.forEach { value ->
-                nDisplays.forEach { displayIdx ->
-                    sendDigitToDisplay(value, displayIdx)
-                }
-                val key = waitKey(100)
-                val idx = keys.indexOf(key)
-                if (idx != -1 && counts[idx] < 9 && coins > 0) {
-                    counts[idx]++
-                    coins--
-                    updateCounts(counts)
+        if (flag) {
+            loop.forEach { valueLoop ->
+                // Só anima os displays vazios (à esquerda)
+                for (i in nDigits until nDisplays) {
+                    sendDigitToDisplay(valueLoop, i)
                 }
                 Time.sleep(100)
             }
+        } else {
+            // Limpa os displays vazios (à esquerda)
+            for (j in digits.size until displays.size)
+                sendDigitToDisplay(0x1F, j)
         }
-        return coins
     }
 
     fun animation(coins: Int): Int{
@@ -109,14 +101,8 @@ object RouletteDisplay {
 
     }
 
-    fun setValue(value: Int) {
-        // Escreve os números nos displays
-        val digits = value.toString().reversed().map { it.digitToInt() }
-        digits.forEachIndexed { idx, digit -> sendDigitToDisplay(digit, idx) }
-        // Preenche os restantes com 0
-        for (j in digits.size until displays.size)
-            sendDigitToDisplay(0x1F, j)
-
+    fun maintenanceDisplay(){
+        displays.forEachIndexed { idx, _ ->sendDigitToDisplay(0x17, idx) }
     }
 
     fun won(winningNumber: Int, count: Int, winner: Boolean) {

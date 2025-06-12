@@ -1,30 +1,6 @@
 import LCD.COLS
 import isel.leic.utils.Time
-
-/*fun main() {
-    HAL.init()
-    KBD.init()
-    SerialEmitter.init()
-    LCD.init()
-    var position = 0
-    val maxPosition = LCD.COLS * LCD.LINES // 16 colunas * 2 linhas
-
-    while (true) {
-        val key = KBD.waitKey(10000)
-        if (key != KBD.NONE.toChar()) {
-            if (position >= maxPosition) {
-                Time.sleep(3000)
-                LCD.clear()
-                position = 0
-            }
-            if (position % LCD.COLS == 0 && position != 0) {
-                LCD.cursor(position / LCD.COLS, 0)
-            }
-            LCD.write(key)
-            position++
-        }
-    }
-}*/
+import kotlin.system.exitProcess
 
 object TUI {
 
@@ -37,9 +13,10 @@ object TUI {
     }
 
     fun writeCentered(line: Int, text: String) {
-        val padding = (COLS - text.length) / 2
+        val displayText = if (text.length > COLS) text.substring(0, COLS) else text
+        val padding = ((COLS - displayText.length) / 2).coerceAtLeast(0)
         LCD.cursor(line, 0)
-        LCD.write(" ".repeat(padding) + text + " ".repeat(COLS - padding - text.length - 1))
+        LCD.write(" ".repeat(padding) + displayText + " ".repeat((COLS - padding - displayText.length).coerceAtLeast(0)))
     }
 
     fun clear() {
@@ -62,5 +39,45 @@ object TUI {
 
     fun cursor(line: Int, col: Int) {
         LCD.cursor(line, col)
+    }
+
+    fun maintenaceInterface(showFirst: Boolean, lastSwitch: Long): Pair<Boolean, Long> {
+        clear()
+        writeCentered(0, "On Maintenance")
+        if (showFirst) writeCentered(1, "*-Play D-shutD")
+        else writeCentered(1, "C-stats A-Count")
+
+        var newShowFirst = showFirst
+        var newLastSwitch = lastSwitch
+        if (System.currentTimeMillis() - lastSwitch >= 3000) {
+            newShowFirst = !showFirst
+            newLastSwitch = System.currentTimeMillis()
+        }
+        return Pair(newShowFirst, newLastSwitch)
+    }
+
+    fun shutdown() {
+        clear()
+        writeCentered(0, "Shutdown")
+        writeCentered(1, "5-Yes Other-No")
+        val confirmKey = waitKey(7000)
+        if (confirmKey == '5') {
+            exitProcess(0)
+        }
+    }
+
+    fun initialSreen(coins: Int){
+        clear()
+        writeCentered(0, "Roulette Game")
+        writeCentered(1, "1 * 2 * 3 * $${coins}")
+    }
+
+    fun handleBetInput(key: Char, keys: String, counts: MutableList<Int>, coins: Int): Int {
+        val idx = keys.indexOf(key)
+        if (idx != -1 && counts[idx] < 9 && coins > 0)
+            counts[idx]++
+        val newCoins = if (coins > 0 && idx != -1 && counts[idx] < 9) coins - 1 else coins
+        updateCountsDisplay(counts, keys.length)
+        return newCoins
     }
 }

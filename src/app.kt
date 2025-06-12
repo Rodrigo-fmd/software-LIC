@@ -1,21 +1,50 @@
 import  isel.leic.utils.Time
+import kotlin.collections.plusAssign
 import kotlin.text.get
 
 fun main() {
     TUI.init()
     RouletteDisplay.init()
 
-    var coins = 70
-
+    var coins = 0
+    var coins1= 0
     while (true) {
-        TUI.clear()
-        TUI.writeCentered(0, "Roulette Game")
-        TUI.writeCentered(1, "1 * 2 * 3 * $${coins}")
+        var showFirst = true
+        var lastSwitch = System.currentTimeMillis()
 
         while (true) {
-            RouletteDisplay.startDisplay()
+
+            // Verifica se uma moeda foi inserida
+            val coinValue = CoinAcceptor.poll()
+            println("Coin value: $coinValue")
+            if (coinValue > 0) coins1 += coinValue
+
             val key = TUI.waitKey(10)
-            if (key == '*') break
+
+            if (maintenance.on()) {
+                coins = 100
+                val (newShowFirst, newLastSwitch) =
+                    TUI.maintenaceInterface(showFirst, lastSwitch)
+                showFirst = newShowFirst
+                lastSwitch = newLastSwitch
+                RouletteDisplay.maintenanceDisplay()
+
+                val key = TUI.waitKey(100)
+                when (key) {
+                    'D' -> TUI.shutdown()
+                    '*' -> break
+                    'C' -> { /* TODO */ }
+                    'A' -> { /* TODO */ }
+                    0.toChar() -> {}
+                    else -> showFirst = !showFirst
+                }
+
+            }else {
+                coins -= coins + coins1
+                TUI.initialSreen(coins)
+                RouletteDisplay.startDisplay()
+                if (key == '*' && coins != 0) break
+            }
         }
 
         TUI.clear()
@@ -25,25 +54,19 @@ fun main() {
         TUI.updateCountsDisplay(counts, keys.length)
 
         while (true) {
-            RouletteDisplay.setValue(coins)
+            RouletteDisplay.setValue(coins,false)
             val key = TUI.waitKey(100)
-            val idx = keys.indexOf(key)
-            if(idx != -1 && counts[idx] < 9 && coins > 0)
-                counts[idx]++
-
-            if(coins > 0 && idx != -1 && counts[idx] < 9) coins--
-            TUI.updateCountsDisplay(counts, keys.length)
-
+            coins = TUI.handleBetInput(key, keys, counts, coins)
             if (key == '#' && counts.any { it > 0 }) break
         }
 
-        coins = RouletteDisplay.bettingPhase(
-            keys,
-            counts,
-            coins,
-            { TUI.updateCountsDisplay(it, keys.length) },
-            { timeout -> TUI.waitKey(timeout) }
-        )
+        // Fase de animação de 5 segundos, ainda permite alterar apostas
+        val animationStart = System.currentTimeMillis()
+        while (System.currentTimeMillis() - animationStart < 5000) {
+            RouletteDisplay.setValue(coins, true)
+            val key = TUI.waitKey(100)
+            coins = TUI.handleBetInput(key, keys, counts, coins)
+        }
 
         val winningNumber = RouletteDisplay.animation(coins)
         val totalBets = counts.sum()
