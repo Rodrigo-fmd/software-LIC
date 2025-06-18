@@ -81,3 +81,38 @@ object TUI {
         return newCoins
     }
 }
+
+fun main(){
+    TUI.init()
+    TUI.clear()
+    TUI.writeCentered(0, "Welcome")
+    TUI.writeCentered(1, "Press any key to start")
+
+    val key = TUI.waitKey(5000)
+    println("Key pressed: $key")
+    Time.sleep(2000)
+    TUI.initialSreen(99) // Exemplo com 100 moedas iniciais
+    Time.sleep(2000)
+    TUI.clear()
+    TUI.writeAt(0, 0,"ola")
+    Time.sleep(2000)
+    TUI.clear()
+
+    var showFirst = true
+    var lastSwitch = System.currentTimeMillis()
+
+    while (true) {
+        // Mostra a interface de manutenção alternando as mensagens
+        val (newShowFirst, newLastSwitch) = TUI.maintenaceInterface(showFirst, lastSwitch)
+        showFirst = newShowFirst
+        lastSwitch = newLastSwitch
+
+        val key = TUI.waitKey(100)
+        when (key) {
+            'D' -> TUI.shutdown()
+            '*' -> break
+            0.toChar() -> {}
+            else -> showFirst = !showFirst
+        }
+    }
+}

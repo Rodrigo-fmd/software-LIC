@@ -43,3 +43,15 @@ object KBD {
     }
 }
 
+fun main() {
+    // Exemplo de uso
+    KBD.init()
+    while (true) {
+        val key = KBD.waitKey(10000) // Espera por uma tecla durante 10 segundos
+        if (key != KBD.NONE.toChar()) {
+            println("Tecla pressionada: $key")
+        } else {
+            println("Nenhuma tecla pressionada.")
+        }
+    }
+}

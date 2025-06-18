@@ -31,3 +31,13 @@ object HAL {
         UsbPort.write(output)
     }
 }
+
+fun main() {
+    // Exemplo de uso
+    HAL.init()
+    HAL.setBits(0b00000001) // Define o bit 0
+    HAL.clrBits(0b00000001) // Limpa o bit 0
+    HAL.writeBits(0b00010001, 0b00000001) // Escreve o bit 0 com valor 1
+    HAL.isBit(0b00000001) // Verifica se o bit 0 está definido
+    HAL.readBits(0b00001111) // Lê os bits 0 a 3
+}
