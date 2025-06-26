@@ -1,4 +1,3 @@
-import RouletteDisplay.startDisplay
 import isel.leic.utils.Time
 
 object RouletteDisplay {
@@ -9,10 +8,11 @@ object RouletteDisplay {
     private const val DISPLAY_SIZE = 8
     private val loop = listOf(0x12, 0x13, 0x14, 0x15, 0x16, 0x11)
     private val displays = (0..5).toList()
-
+    private var animationIndex = 0
 
     fun init() {
         SerialEmitter.init()
+        animationIndex = 0
     }
 
     private fun forSeconds(seconds: Int, block: () -> Unit) {
@@ -38,12 +38,11 @@ object RouletteDisplay {
     }
 
     fun startDisplay() {
-        loop.forEach { value ->
-            displays.forEach { displayIdx ->
-                sendDigitToDisplay(value, displayIdx)
-            }
-            Time.sleep(100)
+        val value = loop[animationIndex % loop.size]
+        displays.forEach { displayIdx ->
+            sendDigitToDisplay(value, displayIdx)
         }
+        animationIndex = (animationIndex + 1) % loop.size
     }
 
     fun setValue(value: Int, animation: Boolean) {

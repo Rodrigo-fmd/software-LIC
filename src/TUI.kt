@@ -41,19 +41,34 @@ object TUI {
         LCD.cursor(line, col)
     }
 
+    private var lastLine0: String? = null
+    private var lastLine1: String? = null
+
     fun maintenaceInterface(showFirst: Boolean, lastSwitch: Long): Pair<Boolean, Long> {
-        clear()
-        writeCentered(0, "On Maintenance")
-        if (showFirst) writeCentered(1, "*-Play D-shutD")
-        else writeCentered(1, "C-stats A-Count")
+        val line0 = "On Maintenance"
+        val line1 = if (showFirst) "*-Play D-shutD" else "C-stats A-Count"
+
+        if (line0 != lastLine0) {
+            writeCentered(0, line0)
+            lastLine0 = line0
+        }
+        if (line1 != lastLine1) {
+            writeCentered(1, line1)
+            lastLine1 = line1
+        }
 
         var newShowFirst = showFirst
         var newLastSwitch = lastSwitch
-        if (System.currentTimeMillis() - lastSwitch >= 3000) {
+        if (System.currentTimeMillis() - lastSwitch >= 2000) {
             newShowFirst = !showFirst
             newLastSwitch = System.currentTimeMillis()
         }
         return Pair(newShowFirst, newLastSwitch)
+    }
+
+    fun clearMaintenanceCache() {
+        lastLine0 = null
+        lastLine1 = null
     }
 
     fun shutdown() {
@@ -66,10 +81,14 @@ object TUI {
         }
     }
 
-    fun initialSreen(coins: Int){
+    fun initialSreen(coins: Int) {
         clear()
         writeCentered(0, "Roulette Game")
-        writeCentered(1, "1 * 2 * 3 * $${coins}")
+        writeAt(1, 0, "1 * 2 * 3 * $" + coins)
+    }
+
+    fun updateCoinsInitial(coins: Int) {
+        writeAt(1, 13, "$coins")
     }
 
     fun handleBetInput(key: Char, keys: String, counts: MutableList<Int>, coins: Int): Int {
@@ -79,6 +98,45 @@ object TUI {
         val newCoins = if (coins > 0 && idx != -1 && counts[idx] < 9) coins - 1 else coins
         updateCountsDisplay(counts, keys.length)
         return newCoins
+    }
+
+    private fun numberToChar(num: Int): String =
+        if (num in 10..13) ('A' + (num - 10)).toString() else num.toString()
+
+    fun showStatsPaged() {
+        var index = 0
+        val totalStats = Statistics.getAllStats()
+        if (totalStats.isEmpty()) return
+
+        while (true) {
+            clear()
+            val stat0 = totalStats.getOrNull(index)
+            val stat1 = totalStats.getOrNull(index + 1)
+            if (stat0 != null)
+                writeAt(0, 0, "${numberToChar(stat0.number)}: -> ${stat0.bets} \$:${stat0.spent}")
+            if (stat1 != null)
+                writeAt(1, 0, "${numberToChar(stat1.number)}: -> ${stat1.bets} \$:${stat1.spent}")
+
+            val key = waitKey(5000)
+            when (key) {
+                '8' -> index = (index + 1).coerceAtMost(totalStats.size - 2)
+                '2' -> index = (index - 1).coerceAtLeast(0)
+                0.toChar() -> break
+                else -> break
+            }
+        }
+    }
+
+    fun showGamesAndCoins(games: Int, coins: Int) {
+        clear()
+        writeAt(0,0, "Games:$games")
+        writeAt(1,0, "Coins:$coins")
+        val start = System.currentTimeMillis()
+        while (System.currentTimeMillis() - start < 5000) {
+            val key = waitKey(100)
+            if (key != 0.toChar()) break
+        }
+        clearMaintenanceCache()
     }
 }
 
@@ -91,7 +149,7 @@ fun main(){
     val key = TUI.waitKey(5000)
     println("Key pressed: $key")
     Time.sleep(2000)
-    TUI.initialSreen(99) // Exemplo com 100 moedas iniciais
+    TUI.initialSreen(100) // Exemplo com 100 moedas iniciais
     Time.sleep(2000)
     TUI.clear()
     TUI.writeAt(0, 0,"ola")

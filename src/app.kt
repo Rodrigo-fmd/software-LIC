@@ -1,59 +1,88 @@
+import isel.leic.utils.Time
+
 fun main() {
     TUI.init()
     RouletteDisplay.init()
 
-    var coins = 0
-    var coins1= 70
+    var coins = 0 // <-- Só inicializa aqui, não dentro de nenhum ciclo
+    var lastCoins = -1
+    var initialScreenDrawn = false
+
+    var showFirst = true
+    var lastSwitch = System.currentTimeMillis()
+
+    var inMaintenance = false
+    var prevInMaintenance = false
+    var savedCoins = 0
+
     while (true) {
-        var showFirst = true
-        var lastSwitch = System.currentTimeMillis()
-
+        initialScreenDrawn = false
         while (true) {
+            prevInMaintenance = inMaintenance
+            inMaintenance = maintenance.on()
 
-            // Verifica se uma moeda foi inserida
-            val coinValue = CoinAcceptor.poll()
-            if (coinValue > 0) coins1 += coinValue
+            // Se acabou de sair da manutenção, restaura as moedas
+            if (prevInMaintenance && !inMaintenance) {
+                coins = savedCoins
+                TUI.clearMaintenanceCache()
+            }
+
+            if (!inMaintenance && coins < 999) {
+                val newCoins = CoinAcceptor.checkAndAdd(coins)
+                if (newCoins > coins) {
+                    CoinDeposit.incrementCoins()
+                }
+                coins = minOf(newCoins, 999)
+            }
 
             val key = TUI.waitKey(10)
 
-            if (maintenance.on()) {
-                coins = 100
-                val (newShowFirst, newLastSwitch) =
-                    TUI.maintenaceInterface(showFirst, lastSwitch)
+            if (inMaintenance) {
+                initialScreenDrawn = false
+                if (!prevInMaintenance) {
+                    savedCoins = coins
+                    coins = 100
+                }
+                val (newShowFirst, newLastSwitch) = TUI.maintenaceInterface(showFirst, lastSwitch)
                 showFirst = newShowFirst
                 lastSwitch = newLastSwitch
                 RouletteDisplay.maintenanceDisplay()
 
-                val key = TUI.waitKey(100)
                 when (key) {
                     'D' -> TUI.shutdown()
-                    '*' -> break
+                    '*' -> {
+                        coins = savedCoins
+                        TUI.clearMaintenanceCache()
+                        break
+                    }
                     'C' -> {
                         TUI.clear()
-                        val stat0 = Statistics.getStatsPerNumber(0)
-                        val stat1 = Statistics.getStatsPerNumber(1)
-                        if (stat0 != null)
-                            TUI.writeAt(0,0, "${stat0.number}: -> ${stat0.bets} \$:${stat0.spent}")
-                        if (stat1 != null)
-                            TUI.writeAt(1,0, "${stat1.number}: -> ${stat1.bets} \$:${stat1.spent}")
-
-                        val start = System.currentTimeMillis()
-                        while (System.currentTimeMillis() - start < 5000) {
-                            val k = TUI.waitKey(100)
-                            if (k != 0.toChar()) break
-                        }
+                        TUI.showStatsPaged()
+                        TUI.initialSreen(coins)
                     }
-                    'A' -> { /* TODO */ }
+                    'A' -> {
+                        val stats = CoinDeposit.getStats()
+                        val games = stats[0]
+                        val coins = stats[1]
+                        TUI.showGamesAndCoins(games, coins)
+                    }
                     0.toChar() -> {}
                     else -> showFirst = !showFirst
                 }
-
-            }else {
-                coins = coins1
-                TUI.initialSreen(coins)
+            } else {
+                if (!initialScreenDrawn) {
+                    TUI.initialSreen(coins)
+                    initialScreenDrawn = true
+                    lastCoins = coins
+                    TUI.clearMaintenanceCache()
+                } else if (coins != lastCoins) {
+                    TUI.updateCoinsInitial(coins)
+                    lastCoins = coins
+                }
                 RouletteDisplay.startDisplay()
                 if (key == '*' && coins != 0) break
             }
+            Time.sleep(75)
         }
 
         TUI.clear()
@@ -63,13 +92,12 @@ fun main() {
         TUI.updateCountsDisplay(counts, keys.length)
 
         while (true) {
-            RouletteDisplay.setValue(coins,false)
+            RouletteDisplay.setValue(coins, false)
             val key = TUI.waitKey(100)
             coins = TUI.handleBetInput(key, keys, counts, coins)
             if (key == '#' && counts.any { it > 0 }) break
         }
 
-        // Fase de animação de 5 segundos, ainda permite alterar apostas
         val animationStart = System.currentTimeMillis()
         while (System.currentTimeMillis() - animationStart < 5000) {
             RouletteDisplay.setValue(coins, true)
@@ -86,5 +114,6 @@ fun main() {
 
         RouletteDisplay.won(winningNumber, bet, winner)
         Statistics.updateStats(winningNumber, if (winner) bet else 0)
+        CoinDeposit.incrementGames()
     }
 }

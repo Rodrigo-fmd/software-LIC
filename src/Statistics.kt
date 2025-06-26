@@ -13,11 +13,6 @@ object Statistics {
         return null
     }
 
-    fun getStatsPerNumber(lineIndex: Int): NumberStats? =
-        FileAccess.readRouletteStats()
-            .mapNotNull { parseLine(it) }
-            .getOrNull(lineIndex)
-
     fun getAllStats(): List<NumberStats> =
         FileAccess.readRouletteStats()
             .mapNotNull { parseLine(it) }
