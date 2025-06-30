@@ -105,7 +105,7 @@ object TUI {
 
     fun showStatsPaged() {
         var index = 0
-        val totalStats = Statistics.getAllStats()
+        var totalStats = Statistics.getAllStats()
         if (totalStats.isEmpty()) return
 
         fun showPage() {
@@ -124,6 +124,12 @@ object TUI {
             when (key) {
                 '8' -> if (index < totalStats.size - 2) { index++; showPage() }
                 '2' -> if (index > 0) { index--; showPage() }
+                '*' -> {
+                    Statistics.resetAllStats()
+                    index = 0
+                    totalStats = Statistics.getAllStats()
+                    showPage()
+                }
                 else -> break
             }
         }

@@ -28,4 +28,11 @@ object Statistics {
             stats.map { "${it.number};${it.bets};${it.spent}" }
         )
     }
+
+    fun resetAllStats() {
+        val stats = getAllStats().map { it.copy(bets = 0, spent = 0) }
+        FileAccess.writeRouletteStats(
+            stats.map { "${it.number};0;0" }
+        )
+    }
 }

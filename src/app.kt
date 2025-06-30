@@ -55,9 +55,13 @@ fun main() {
                         break
                     }
                     'C' -> {
+                        TUI.clearMaintenanceCache()
                         TUI.clear()
                         TUI.showStatsPaged()
-                        TUI.initialSreen(coins)
+                        // Redesenha a interface de manutenção ao voltar
+                        val (newShowFirst, newLastSwitch) = TUI.maintenaceInterface(showFirst, lastSwitch)
+                        showFirst = newShowFirst
+                        lastSwitch = newLastSwitch
                     }
                     'A' -> {
                         val stats = CoinDeposit.getStats()
