@@ -13,8 +13,10 @@ object CoinAcceptor {
             HAL.setBits(ENABLE_ACCEPT)
             Time.sleep(25)
 
-            val coinValue = if (HAL.isBit(MASK_ID)) 4 else 2
-            updatedAmount += coinValue
+            updatedAmount += when (HAL.isBit(MASK_ID)) {
+                true -> 4
+                false -> 2
+            }
 
             do {
                 Time.sleep(10)
