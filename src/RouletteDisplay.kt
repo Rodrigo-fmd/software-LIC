@@ -11,8 +11,9 @@ object RouletteDisplay {
     private var animationIndex = 0
 
     fun init() {
-        SerialEmitter.init()
-        animationIndex = 0
+        clearAllDisplays()
+        // Liga o display
+        off(false)
     }
 
     private fun forSeconds(seconds: Int, block: () -> Unit) {
@@ -130,6 +131,12 @@ object RouletteDisplay {
             if (value) DISPLAY_OFF else DISPLAY_ON,
             DISPLAY_SIZE
         )
+    }
+
+    fun clearAllDisplays() {
+        displays.forEach { displayIdx ->
+            sendDigitToDisplay(0x1F, displayIdx)
+        }
     }
 }
 
