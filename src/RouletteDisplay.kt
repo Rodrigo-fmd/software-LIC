@@ -137,54 +137,6 @@ object RouletteDisplay {
 // src/RouletteDisplay.kt
 fun main() {
     RouletteDisplay.init()
-    var coins = 50
-
-    // Mostra o display inicial com loop de animação
-    println("Início do display")
-    repeat(3) { // Loop de animação
-        RouletteDisplay.startDisplay()
-    }
-
-    // Simula apostas e atualização do display com loop
-    for (i in 1..3) {
-        coins -= 5
-        repeat(2) { // Mostra atualização do display por ~1000ms
-            RouletteDisplay.setValue(coins, false)
-            Time.sleep(1000)
-        }
-        println("Aposta feita, moedas restantes: $coins")
-    }
-
-    // Animação de roleta com loop visível
-    println("Animação da roleta")
-    repeat(2) {
-        val winningNumber = RouletteDisplay.animation(coins)
-        println("Número sorteado: $winningNumber")
-        Time.sleep(500)
-    }
-
-    // Simula vitória ou derrota
-    val winner = (0..1).random() == 1
-    val bet = if (winner) 10 else 0
-
-    // Mostra resultado com loop
-    repeat(2) {
-        RouletteDisplay.won(winningNumber = if (winner) 3 else 5, count = bet, winner = winner)
-        Time.sleep(500)
-    }
-    println("Resultado mostrado no display")
-
-    // Mostra display de manutenção com loop
-        RouletteDisplay.maintenanceDisplay()
-        Time.sleep(1500)
-    println("Display em modo manutenção")
-
-    // Desliga o display
-    RouletteDisplay.off(true)
-    Time.sleep(2000)
-    println("Display desligado")
-
     RouletteDisplay.off(false)
-    println("Display ligado novamente")
-    Time.sleep(2000)
+    while (true) RouletteDisplay.startDisplay()
 }
