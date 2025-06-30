@@ -54,13 +54,12 @@ object RouletteDisplay {
         digits.forEachIndexed { idx, digit -> sendDigitToDisplay(digit, idx) }
 
         if (animation) {
-            loop.forEach { valueLoop ->
-                // Só anima os displays vazios (à esquerda)
-                for (i in nDigits until nDisplays) {
-                    sendDigitToDisplay(valueLoop, i)
-                }
-                Time.sleep(100)
+            val value = loop[animationIndex % loop.size]
+            // Só anima os displays vazios (à esquerda)
+            for (i in nDigits until nDisplays) {
+                sendDigitToDisplay(value, i)
             }
+            animationIndex = (animationIndex + 1) % loop.size
         } else {
             // Limpa os displays vazios (à esquerda)
             for (j in digits.size until displays.size)
@@ -138,5 +137,8 @@ object RouletteDisplay {
 fun main() {
     RouletteDisplay.init()
     RouletteDisplay.off(false)
-    while (true) RouletteDisplay.startDisplay()
+    while (true) {
+        RouletteDisplay.startDisplay()
+        Time.sleep(50)
+    }
 }

@@ -108,7 +108,7 @@ object TUI {
         val totalStats = Statistics.getAllStats()
         if (totalStats.isEmpty()) return
 
-        while (true) {
+        fun showPage() {
             clear()
             val stat0 = totalStats.getOrNull(index)
             val stat1 = totalStats.getOrNull(index + 1)
@@ -116,12 +116,14 @@ object TUI {
                 writeAt(0, 0, "${numberToChar(stat0.number)}: -> ${stat0.bets} \$:${stat0.spent}")
             if (stat1 != null)
                 writeAt(1, 0, "${numberToChar(stat1.number)}: -> ${stat1.bets} \$:${stat1.spent}")
+        }
 
+        showPage()
+        while (true) {
             val key = waitKey(5000)
             when (key) {
-                '8' -> index = (index + 1).coerceAtMost(totalStats.size - 2)
-                '2' -> index = (index - 1).coerceAtLeast(0)
-                0.toChar() -> break
+                '8' -> if (index < totalStats.size - 2) { index++; showPage() }
+                '2' -> if (index > 0) { index--; showPage() }
                 else -> break
             }
         }
