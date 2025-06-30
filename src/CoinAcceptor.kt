@@ -6,6 +6,7 @@ object CoinAcceptor {
     private const val MASK_ID = 0x20
     private const val ENABLE_ACCEPT = 0x40
 
+    // variável global para guardar estado anterior
     var previousCoinState = false
 
     fun checkAndAdd(currentAmount: Int): Int {
@@ -13,22 +14,25 @@ object CoinAcceptor {
 
         val coinDetected = HAL.isBit(MASK_COIN)
 
-        // Detecta borda de subida (de false para true)
-        if (coinDetected && !previousCoinState) {
+        if (coinDetected) {
+            // Ativa ENABLE_ACCEPT enquanto o sinal da moeda estiver ativo
             HAL.setBits(ENABLE_ACCEPT)
-            Time.sleep(25)
 
-            updatedAmount += when (HAL.isBit(MASK_ID)) {
-                true -> 4
-                false -> 2
+            // Detecta borda de subida: só incrementa uma vez por ciclo
+            if (!previousCoinState) {
+                Time.sleep(25)  // se quiser manter este atraso
+                val coinValue = if (HAL.isBit(MASK_ID)) 4 else 2
+                updatedAmount += coinValue
             }
-
+        } else {
+            // desativa ENABLE_ACCEPT se não houver moeda
             HAL.clrBits(ENABLE_ACCEPT)
         }
 
-        // Atualiza estado anterior
+        // atualiza estado anterior
         previousCoinState = coinDetected
 
         return updatedAmount
     }
+
 }
