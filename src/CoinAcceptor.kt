@@ -16,6 +16,9 @@ object CoinAcceptor {
             val coinValue = if (HAL.isBit(MASK_ID)) 4 else 2
             updatedAmount += coinValue
 
+            do {
+                Time.sleep(10)
+            }while (HAL.isBit(MASK_COIN))
             // Wait until coin signal is cleared
             HAL.clrBits(ENABLE_ACCEPT)
         }

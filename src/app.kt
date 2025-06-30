@@ -4,7 +4,7 @@ fun main() {
     TUI.init()
     RouletteDisplay.init()
 
-    var coins = 0 // <-- Só inicializa aqui, não dentro de nenhum ciclo
+    var coins = 0
     var lastCoins = -1
     var initialScreenDrawn = false
 
@@ -21,7 +21,7 @@ fun main() {
             prevInMaintenance = inMaintenance
             inMaintenance = maintenance.on()
 
-            // Se acabou de sair da manutenção, restaura as moedas
+            // Ao sair da manutenção, restaurar as moedas
             if (prevInMaintenance && !inMaintenance) {
                 coins = savedCoins
                 TUI.clearMaintenanceCache()
@@ -41,8 +41,8 @@ fun main() {
                 initialScreenDrawn = false
                 if (!prevInMaintenance) {
                     savedCoins = coins
-                    coins = 100
                 }
+                coins = 100 // Garante sempre 100 moedas em manutenção
                 val (newShowFirst, newLastSwitch) = TUI.maintenaceInterface(showFirst, lastSwitch)
                 showFirst = newShowFirst
                 lastSwitch = newLastSwitch
@@ -51,7 +51,6 @@ fun main() {
                 when (key) {
                     'D' -> TUI.shutdown()
                     '*' -> {
-                        coins = savedCoins
                         TUI.clearMaintenanceCache()
                         break
                     }
@@ -94,7 +93,9 @@ fun main() {
         while (true) {
             RouletteDisplay.setValue(coins, false)
             val key = TUI.waitKey(100)
-            coins = TUI.handleBetInput(key, keys, counts, coins)
+            if (key in keys) {
+                coins = TUI.handleBetInput(key, keys, counts, coins)
+            }
             if (key == '#' && counts.any { it > 0 }) break
         }
 
@@ -102,7 +103,9 @@ fun main() {
         while (System.currentTimeMillis() - animationStart < 5000) {
             RouletteDisplay.setValue(coins, true)
             val key = TUI.waitKey(100)
-            coins = TUI.handleBetInput(key, keys, counts, coins)
+            if (key in keys) {
+                coins = TUI.handleBetInput(key, keys, counts, coins)
+            }
         }
 
         val winningNumber = RouletteDisplay.animation(coins)
